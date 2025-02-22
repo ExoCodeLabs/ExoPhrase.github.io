@@ -24,6 +24,8 @@ const nextConfig = {
   output: "export",
   reactStrictMode: true,
   images: { unoptimized: true },
+  assetPrefix: "https://exocodelabs.github.io/Exonizer/",
+  basePath: "/Exonizer",
 }
 
 mergeConfig(nextConfig, userConfig)
