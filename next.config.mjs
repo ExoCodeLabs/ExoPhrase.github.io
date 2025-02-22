@@ -2,7 +2,7 @@ let userConfig = undefined
 try {
   userConfig = await import("./v0-user-next.config")
 } catch (e) {
-  // ignore error
+  // Optionally handle specific import errors or log them
 }
 
 /** @type {import('next').NextConfig} */
@@ -23,7 +23,6 @@ const nextConfig = {
   },
   output: "export",
   reactStrictMode: true,
-  images: { unoptimized: true },
   assetPrefix: "https://exocodelabs.github.io/Exonizer/",
   basePath: "/Exonizer",
 }
@@ -40,10 +39,7 @@ function mergeConfig(nextConfig, userConfig) {
       typeof nextConfig[key] === "object" &&
       !Array.isArray(nextConfig[key])
     ) {
-      nextConfig[key] = {
-        ...nextConfig[key],
-        ...userConfig[key],
-      }
+      nextConfig[key] = { ...nextConfig[key], ...userConfig[key] }
     } else {
       nextConfig[key] = userConfig[key]
     }
