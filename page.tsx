@@ -15,6 +15,7 @@ export default function ExonizerApp() {
   const [input, setInput] = useState("")
   const [output, setOutput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState(false)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value
@@ -29,11 +30,31 @@ export default function ExonizerApp() {
 
   const handleSubmit = async () => {
     setIsLoading(true)
-    // Simulate processing delay
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    // Example transformation
-    setOutput(input.split(".").join("... "))
-    setIsLoading(false)
+    setError(false)
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/humanize`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-KEY": process.env.NEXT_PUBLIC_API_KEY || "",
+          },
+          body: JSON.stringify({ text: input }),
+        }
+      )
+      if (response.ok) {
+        const data = await response.json()
+        setOutput(data.humanized_text)
+      } else {
+        setError(true)
+      }
+    } catch (error) {
+      console.error("Error:", error)
+      alert("An unexpected error occurred. Please try again later.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const copyToClipboard = () => {
@@ -43,8 +64,6 @@ export default function ExonizerApp() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-950 via-black to-orange-950">
       {/* Animated background pattern */}
-      <div className="fixed inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"20\" height=\"20\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Crect width=\"20\" height=\"20\" fill=\"none\" stroke=\"%23EA580C\" stroke-opacity=\"0.05\" stroke-width=\"1\"/%3E%3C/svg%3E')] bg-repeat opacity-20" />
-
       {/* Futuristic header */}
       <header className="border-b border-orange-500/20 bg-black/30 backdrop-blur-md fixed top-0 w-full z-10">
         <div className="container mx-auto px-4 py-4">
@@ -66,18 +85,28 @@ export default function ExonizerApp() {
             {/* Input section */}
             <div>
               <div className="flex justify-between items-center mb-2">
-                <label className="block text-sm font-medium text-orange-400">AI Generated Text</label>
-                <span className={`text-sm ${isNearLimit ? 'text-orange-400' : 'text-gray-500'}`}>
+                <label className="block text-sm font-medium text-orange-400">
+                  AI Generated Text
+                </label>
+                <span
+                  className={`text-sm ${
+                    isNearLimit ? "text-orange-400" : "text-gray-500"
+                  }`}
+                >
                   {remainingChars} characters remaining
                 </span>
               </div>
               <div className="relative">
-                <Textarea 
+                <Textarea
                   value={input}
                   onChange={handleInputChange}
                   placeholder="Paste your AI-generated text here..."
-                  className={`min-h-[200px] bg-black/50 border-orange-500/20 text-white placeholder:text-gray-500 
-                    ${isAtLimit ? 'focus-visible:ring-red-500' : 'focus-visible:ring-orange-500'}`}
+                  className={`min-h-[200px] bg-black/50 border-orange-500/20 text-white placeholder:text-gray-500
+                    ${
+                      isAtLimit
+                        ? "focus-visible:ring-red-500"
+                        : "focus-visible:ring-orange-500"
+                    }`}
                 />
               </div>
               {isNearLimit && !isAtLimit && (
@@ -91,8 +120,14 @@ export default function ExonizerApp() {
               {isAtLimit && (
                 <Alert className="mt-2 bg-red-500/10 border-red-500/50 text-red-400">
                   <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>Character limit reached</AlertDescription>
+                </Alert>
+              )}
+              {error && (
+                <Alert className="mt-2 bg-red-500/10 border-red-500/50 text-red-400">
+                  <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    Character limit reached
+                    Something went wrong, please try again later.
                   </AlertDescription>
                 </Alert>
               )}
@@ -103,7 +138,7 @@ export default function ExonizerApp() {
               <Button
                 onClick={handleSubmit}
                 disabled={isLoading || !input}
-                className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 
+                className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700
                   text-black font-bold relative overflow-hidden group px-8 py-6 text-lg shadow-lg shadow-orange-500/20"
               >
                 {isLoading ? (
@@ -121,7 +156,9 @@ export default function ExonizerApp() {
             {output && (
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-medium text-orange-400">Humanized Text</label>
+                  <label className="block text-sm font-medium text-orange-400">
+                    Humanized Text
+                  </label>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -132,7 +169,7 @@ export default function ExonizerApp() {
                   </Button>
                 </div>
                 <div className="relative">
-                  <Textarea 
+                  <Textarea
                     value={output}
                     readOnly
                     className="min-h-[200px] bg-black/50 border-orange-500/20 text-white"
@@ -149,4 +186,3 @@ export default function ExonizerApp() {
     </div>
   )
 }
-
