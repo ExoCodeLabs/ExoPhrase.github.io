@@ -33,7 +33,7 @@ export default function ExonizerApp() {
     setError(false)
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/humanize`,
+        `${process.env.NEXT_PUBLIC_API_URL}humanize`,
         {
           method: "POST",
           headers: {
